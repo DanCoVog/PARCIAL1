@@ -1,36 +1,70 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
 
-export default function Clientes() {
+export default function ClientesPage() {
   const [clientes, setClientes] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [nuevoCliente, setNuevoCliente] = useState({ nombre: "", email: "", telefono: "" });
 
+  // cargar clientes desde la API
   useEffect(() => {
-    // Datos iniciales de ejemplo
-    setClientes([
-      { id: 1, nombre: "Juan Pérez", email: "juan@example.com", telefono: "123456789" },
-      { id: 2, nombre: "María López", email: "maria@example.com", telefono: "987654321" },
-      { id: 3, nombre: "Carlos Ruiz", email: "carlos@example.com", telefono: "555666777" },
-    ]);
+    fetch("/api/clientes")
+      .then((res) => res.json())
+      .then((data) => setClientes(data))
+      .catch(() => {
+        // datos de ejemplo si no hay conexión
+        setClientes([
+          { id: 1, nombre: "Juan Pérez", email: "juan@example.com", telefono: "123456789" },
+          { id: 2, nombre: "María López", email: "maria@example.com", telefono: "987654321" },
+        ]);
+      });
   }, []);
 
-  const handleAddCliente = (e) => {
+  // agregar cliente
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!nuevoCliente.nombre || !nuevoCliente.email || !nuevoCliente.telefono) return;
 
-    const nuevo = { id: clientes.length + 1, ...nuevoCliente };
-    setClientes([...clientes, nuevo]); // agrega al listado
-    setNuevoCliente({ nombre: "", email: "", telefono: "" }); // limpia formulario
-    setShowForm(false); // cierra formulario
+    try {
+      const res = await fetch("/api/clientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoCliente),
+      });
+
+      if (res.ok) {
+        const cliente = await res.json();
+        setClientes([...clientes, cliente]);
+      } else {
+        // si la API no responde, simula cliente
+        const fake = {
+          id: clientes.length + 1,
+          ...nuevoCliente,
+        };
+        setClientes([...clientes, fake]);
+      }
+    } catch {
+      const fake = {
+        id: clientes.length + 1,
+        ...nuevoCliente,
+      };
+      setClientes([...clientes, fake]);
+    }
+
+    setNuevoCliente({ nombre: "", email: "", telefono: "" });
+    setShowForm(false);
   };
 
   return (
     <div className="min-h-screen bg-gray-600 p-6">
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h1 className="text-2xl text-black font-bold mb-4">👤 Gestión de Clientes</h1>
+      {/* ✅ Aquí se abre y se cierra el Navbar */}
+      <Navbar />  
 
-        {/* Botón para mostrar formulario */}
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <h1 className="text-2xl font-bold mb-4 text-black">👤 Gestión de Clientes</h1>
+
+        {/* Botón mostrar/ocultar formulario */}
         <button
           onClick={() => setShowForm(!showForm)}
           className="mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700"
@@ -38,10 +72,10 @@ export default function Clientes() {
           ➕ Nuevo Cliente
         </button>
 
-        {/* Formulario de nuevo cliente */}
+        {/* Formulario */}
         {showForm && (
           <form
-            onSubmit={handleAddCliente}
+            onSubmit={handleSubmit}
             className="mb-4 p-4 bg-gray-50 border rounded-lg shadow-inner"
           >
             <div className="grid grid-cols-3 gap-4 mb-4">
@@ -76,8 +110,8 @@ export default function Clientes() {
           </form>
         )}
 
-        {/* Tabla de clientes */}
-        <table className="min-w-full border border-gray-900">
+        {/* Tabla */}
+        <table className="min-w-full border border-gray-300">
           <thead>
             <tr className="bg-gray-800 text-white">
               <th className="px-4 py-2 border">ID</th>

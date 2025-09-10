@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Navbar from "../components/Navbar"; 
 
 export default function Productos() {
   const [productos, setProductos] = useState([]);
@@ -26,6 +27,7 @@ export default function Productos() {
 
   return (
     <div className="min-h-screen bg-gray-600 p-6">
+      <Navbar />
       <div className="bg-white shadow-md rounded-lg p-6">
         <h1 className="text-2xl font-bold mb-4 text-black">🛒 Gestión de Productos</h1>
 
